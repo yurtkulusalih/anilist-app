@@ -19,3 +19,31 @@ source .venv/bin/activate
 ```
 pip install -r requirements.txt
 ```
+
+4. Run tests
+
+```
+pytest tests/*
+```
+
+5. Start the application:
+
+```
+fastapi dev main.py
+```
+
+### Frontend (Vue3 - Node-20.18)
+
+1. Navigate under `frontend/`
+
+2. Install dependencies:
+
+```
+npm ci
+```
+
+3. Run the application:
+
+```
+npm run dev
+```
