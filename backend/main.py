@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from strawberry.fastapi import GraphQLRouter
-from .database import create_db_and_tables
+from .database import create_db_and_tables, get_session
 from .schema import schema
 
 
@@ -11,7 +11,11 @@ async def setup_db(app: FastAPI):
     yield
 
 
-graphql_app = GraphQLRouter(schema=schema)
+def get_context(session=Depends(get_session)):
+    return {"session": session}
+
+
+graphql_app = GraphQLRouter(schema=schema, context_getter=get_context)
 
 app = FastAPI(lifespan=setup_db)
 
