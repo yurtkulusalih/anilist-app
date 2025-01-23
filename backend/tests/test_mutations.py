@@ -1,16 +1,5 @@
 from fastapi.testclient import TestClient
-
-
-# Works like a fixture
-def create_user(client: TestClient):
-    mutation_create_user = """
-        mutation {
-            createUser(
-                username: "testuser123",
-                password: "testpassword")
-                }"""
-
-    client.post("/graphql", json={"query": mutation_create_user})
+from .conftest import create_test_user, authorize_test_user
 
 
 def test_create_user(client: TestClient):
@@ -29,7 +18,7 @@ def test_create_user(client: TestClient):
 
 
 def test_login(client: TestClient):
-    create_user(client)
+    create_test_user(client)
 
     mutation_login = """
         mutation {
@@ -46,7 +35,7 @@ def test_login(client: TestClient):
 
 
 def test_login_invalid_credentials(client: TestClient):
-    create_user(client)
+    create_test_user(client)
 
     mutation = """
         mutation {
@@ -63,19 +52,10 @@ def test_login_invalid_credentials(client: TestClient):
 
 
 def test_add_to_watchlist(client: TestClient):
-    create_user(client)
+    create_test_user(client)
+    auth_data = authorize_test_user(client)
 
-    mutation_login = """
-        mutation {
-            login(
-                username: "testuser123",
-                password: "testpassword")
-                }"""
-
-    response = client.post("/graphql", json={"query": mutation_login})
-    data = response.json()
-    token = data["data"]["login"]
-
+    token = auth_data["data"]["login"]
     mutation = """
         mutation {
             addToWatchlist(
@@ -106,18 +86,10 @@ def test_add_to_watchlist_unauthorized(client: TestClient):
 
 
 def test_add_to_watchlist_duplicate(client: TestClient):
-    create_user(client)
+    create_test_user(client)
+    auth_data = authorize_test_user(client)
 
-    mutation_login = """
-        mutation {
-            login(
-                username: "testuser123",
-                password: "testpassword")
-                }"""
-
-    response = client.post("/graphql", json={"query": mutation_login})
-    data = response.json()
-    token = data["data"]["login"]
+    token = auth_data["data"]["login"]
 
     mutation = """
         mutation {

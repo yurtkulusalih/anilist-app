@@ -11,7 +11,7 @@ SECRET_KEY = "a07ebd8f4351b053da2ad3713db479b0c33444d2ca741f47a1eee6eff2d0844f"
 
 search_anime_query = """
         query ($page: Int = 1, $type: MediaType = ANIME, $search: String, $status: MediaStatus ) {
-            Page (page: $page, perPage: 20) {
+            Page (page: $page, perPage: 50) {
                 pageInfo {
                     total
                     currentPage
@@ -44,23 +44,72 @@ search_anime_query = """
         }
         """
 
+fetch_media_list = """
+        query ($ids: [Int]) {
+            Page {
+                media (id_in: $ids, type: ANIME) {
+                    id
+                    title {
+                        userPreferred
+                    }
+                    averageScore
+                    coverImage {
+                        large
+                    }
+                    startDate {
+                        day
+                        month
+                        year
+                    }
+                    endDate {
+                        day
+                        month
+                        year
+                    }
+                    status(version: 2)
+                }
+            }
+        }
+        """
+
 
 @strawberry.type
-class AnimeType:
+class AnimeBaseType:
     id: int
     title: str
-    description: str
+    coverImage: str | None
     averageScore: float | None
-    coverImage: str  # URL
     startDate: str | None
     endDate: str | None
     status: str
 
 
 @strawberry.type
+class AnimeType(AnimeBaseType):
+    description: str | None
+
+
+@strawberry.type
 class WatchlistItemType:
     id: int
     anime_id: int
+
+
+@strawberry.type
+class UserWatchlistType(AnimeBaseType):
+    pass
+
+
+def verify_auhorization(headers):
+    token = headers.get("Authorization")
+    if not token:
+        raise Exception("Unauthorized")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        username = payload["username"]
+        return username
+    except jwt.InvalidTokenError:
+        raise Exception("Invalid token")
 
 
 @strawberry.type
@@ -90,7 +139,40 @@ class Query:
             for anime in data["data"]["Page"]["media"]
         ]
 
-    # todo add a query to get the private watchlist of a user
+    @strawberry.field
+    def get_watchlist(self, info: Info) -> List[UserWatchlistType]:
+        session = info.context["session"]
+        request = info.context["request"]
+        try:
+            username = verify_auhorization(request.headers)
+            user = session.exec(select(User).where(User.username == username)).first()
+
+            watchlist = session.exec(
+                select(Watchlist).where(Watchlist.user_id == user.id)
+            )
+
+            anime_ids = [item.anime_id for item in watchlist]
+            variables = {"ids": anime_ids}
+            response = requests.post(
+                "https://graphql.anilist.co",
+                json={"query": fetch_media_list, "variables": variables},
+            )
+            data = response.json()
+
+            return [
+                UserWatchlistType(
+                    id=anime["id"],
+                    title=anime["title"]["userPreferred"],
+                    coverImage=anime["coverImage"]["large"],
+                    averageScore=anime["averageScore"],
+                    startDate=f"{anime['startDate']['day']}-{anime['startDate']['month']}-{anime['startDate']['year']}",
+                    endDate=f"{anime['endDate']['day']}-{anime['endDate']['month']}-{anime['endDate']['year']}",
+                    status=anime["status"],
+                )
+                for anime in data["data"]["Page"]["media"]
+            ]
+        except Exception as e:
+            raise e
 
 
 @strawberry.type
@@ -122,29 +204,23 @@ class Mutation:
     def add_to_watchlist(self, anime_id: int, info: Info) -> bool:
         session: Session = info.context["session"]
         request = info.context["request"]
-        token = request.headers.get("Authorization")
-        if not token:
-            raise Exception("Unauthorized")
-
         try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-            username = payload["username"]
-        except jwt.InvalidTokenError:
-            raise Exception("Invalid token")
+            username = verify_auhorization(request.headers)
+            user = session.exec(select(User).where(User.username == username)).first()
 
-        user = session.exec(select(User).where(User.username == username)).first()
+            if session.exec(
+                select(Watchlist).where(
+                    Watchlist.anime_id == anime_id, Watchlist.user_id == user.id
+                )
+            ).first():
+                raise Exception("Anime already in the watchlist")
 
-        if session.exec(
-            select(Watchlist).where(
-                Watchlist.anime_id == anime_id, Watchlist.user_id == user.id
-            )
-        ).first():
-            raise Exception("Anime already in the watchlist")
-
-        watchlist = Watchlist(anime_id=anime_id, user_id=user.id)
-        session.add(watchlist)
-        session.commit()
-        return True
+            watchlist = Watchlist(anime_id=anime_id, user_id=user.id)
+            session.add(watchlist)
+            session.commit()
+            return True
+        except Exception as e:
+            raise e
 
 
 schema = strawberry.Schema(query=Query, mutation=Mutation)
