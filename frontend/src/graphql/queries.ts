@@ -26,3 +26,17 @@ export const CREATE_USER = gql`
     createUser(username: $username, password: $password)
   }
 `
+
+export const GET_WATCHLIST = gql`
+  query {
+    getWatchlist {
+      averageScore
+      coverImage
+      id
+      title
+      endDate
+      startDate
+      status
+    }
+  }
+`

@@ -54,7 +54,7 @@ fetch_media_list = """
                     }
                     averageScore
                     coverImage {
-                        large
+                        medium
                     }
                     startDate {
                         day
@@ -163,7 +163,7 @@ class Query:
                 UserWatchlistType(
                     id=anime["id"],
                     title=anime["title"]["userPreferred"],
-                    coverImage=anime["coverImage"]["large"],
+                    coverImage=anime["coverImage"]["medium"],
                     averageScore=anime["averageScore"],
                     startDate=f"{anime['startDate']['day']}-{anime['startDate']['month']}-{anime['startDate']['year']}",
                     endDate=f"{anime['endDate']['day']}-{anime['endDate']['month']}-{anime['endDate']['year']}",

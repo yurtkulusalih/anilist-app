@@ -17,6 +17,10 @@ interface IProps {
 }
 
 const props = defineProps<IProps>()
+
+const onClickAddToWatchlist = () => {
+  console.log('In progress...')
+}
 </script>
 <template>
   <div class="flex flex-col justify-between bg-white shadow-md rounded-lg overflow-hidden">
@@ -48,7 +52,7 @@ const props = defineProps<IProps>()
     <div v-if="isUserLoggedIn" class="mt-auto p-4 border-t">
       <button
         class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors w-full"
-        @click="() => console.log('In progress...')"
+        @click="onClickAddToWatchlist"
       >
         Add to Watchlist
       </button>

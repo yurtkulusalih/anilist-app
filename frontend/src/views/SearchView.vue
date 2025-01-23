@@ -25,7 +25,6 @@ const searchAnime = () => {
 </script>
 
 <template>
-  <!-- <button class="bg-blue-500 text-white px-4 py-2" @click="addToWatchlist(anime)">Add to Watchlist</button> -->
   <div class="flex flex-col items-center gap-y-6 pt-4">
     <div class="flex gap-x-4 justify-center w-full">
       <input v-model="searchTerm" placeholder="Search Anime" class="border p-2 w-[60%]" />

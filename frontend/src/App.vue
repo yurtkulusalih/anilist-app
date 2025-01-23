@@ -15,6 +15,7 @@ const router = useRouter()
       <RouterLink to="/search">Search</RouterLink>
       <RouterLink v-if="!isUserLoggedIn" to="/login">Login</RouterLink>
       <RouterLink v-if="!isUserLoggedIn" to="/register">Register</RouterLink>
+      <RouterLink v-if="isUserLoggedIn" to="/watchlist">Watchlist</RouterLink>
       <span
         class="cursor-pointer"
         v-if="isUserLoggedIn"

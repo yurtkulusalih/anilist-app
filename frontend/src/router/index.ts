@@ -26,13 +26,20 @@ const router = createRouter({
       name: 'register',
       component: () => import('@/views/RegisterView.vue'),
     },
+    {
+      path: '/watchlist',
+      name: 'watchlist',
+      component: () => import('@/views/WatchlistView.vue'),
+    },
   ],
 })
 
 router.beforeEach((to, _from, next) => {
-  const { authToken } = storeToRefs(useAuthToken())
-  if ((to.name === 'login' || to.name === 'register') && authToken.value) {
+  const { isUserLoggedIn } = storeToRefs(useAuthToken())
+  if ((to.name === 'login' || to.name === 'register') && isUserLoggedIn.value) {
     next({ name: 'home' })
+  } else if (to.name === 'watchlist' && !isUserLoggedIn.value) {
+    next({ name: 'login' })
   } else {
     next()
   }
