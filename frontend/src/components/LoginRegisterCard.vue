@@ -30,7 +30,7 @@ const { mutate: createUser, onDone: onCreateUser } = useMutationWithProvider(CRE
 const toggleForm = () => router.push({ path: isLogin.value ? '/register' : '/login' })
 
 // Form submission
-const handleSubmit = async () => {
+const handleSubmit = () => {
   if (!isLogin.value && password.value !== confirmPassword.value) {
     alert('Passwords do not match.')
     return
