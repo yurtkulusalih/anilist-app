@@ -1,12 +1,38 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { SEARCH_ANIME } from '@/graphql'
+import { SEARCH_ANIME, GET_WATCHLIST } from '@/graphql'
 import { apolloClient } from '@/plugins/apollo'
 import { useQuery, provideApolloClient } from '@vue/apollo-composable'
 import AnimeCard from '@/components/AnimeCard.vue'
+import { storeToRefs } from 'pinia'
+import { useAuthToken } from '@/stores/authStore'
 
 const searchTerm = ref<string>('')
 const results = ref<any[]>([])
+const watchlist = ref<number[]>([])
+const { isUserLoggedIn, authToken } = storeToRefs(useAuthToken())
+
+if (isUserLoggedIn.value) {
+  const { result: watchlistResult } = provideApolloClient(apolloClient)(() =>
+    useQuery(
+      GET_WATCHLIST,
+      {},
+      {
+        fetchPolicy: 'network-only',
+        context: {
+          headers: {
+            Authorization: `${authToken.value}`,
+          },
+        },
+      },
+    ),
+  )
+  watch(watchlistResult, (data) => {
+    if (data.getWatchlist) {
+      watchlist.value = data.getWatchlist.map((item: any) => item.id)
+    }
+  })
+}
 
 const searchAnime = () => {
   const { result: animelist } = provideApolloClient(apolloClient)(() =>
@@ -23,7 +49,10 @@ const searchAnime = () => {
 
   watch(animelist, (data) => {
     if (data.animelist) {
-      results.value = data.animelist
+      results.value = data.animelist.map((anime: any) => ({
+        ...anime,
+        inWatchlist: watchlist.value.includes(anime.id),
+      }))
     }
   })
 }

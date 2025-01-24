@@ -6,8 +6,6 @@ import { ref } from 'vue'
 
 const { isUserLoggedIn, authToken } = storeToRefs(useAuthToken())
 
-const itemInWatchlist = ref<boolean>(false)
-
 interface IProps {
   anime: {
     id: number
@@ -18,10 +16,13 @@ interface IProps {
     startDate: string
     endDate: string
     status: string
+    inWatchlist: boolean
   }
 }
 
 const props = defineProps<IProps>()
+
+const itemInWatchlist = ref<boolean>(props.anime.inWatchlist)
 
 const { mutate: addToWatchlist, onDone, onError } = useMutationWithProvider(ADD_TO_WATCHLIST)
 
@@ -76,8 +77,12 @@ const onClickAddToWatchlist = (id: number) => {
     </div>
     <div v-if="isUserLoggedIn" class="mt-auto p-4 border-t">
       <button
-        class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors w-full"
-        :class="itemInWatchlist ? 'bg-gray-500 cursor-not-allowed' : ''"
+        class="text-white px-4 py-2 rounded-md w-full"
+        :class="
+          itemInWatchlist
+            ? 'bg-gray-500 cursor-not-allowed hover:'
+            : 'bg-blue-500 hover:bg-blue-600 transition-colors'
+        "
         @click="() => onClickAddToWatchlist(anime.id)"
       >
         {{ itemInWatchlist ? 'Added' : 'Add to Watchlist' }}
