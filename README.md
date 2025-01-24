@@ -1,5 +1,16 @@
 # anilist-app
 
+## Docker
+
+- You can simply start testing the application using docker:
+
+```
+docker compose up --build
+```
+
+- After that you can access the FE from `http://localhost:5173/`
+- The API documentation can be accessed from `http://localhost:8000/docs`
+
 ## Local Setup
 
 ### Backend (FastAPI - Python 3.10)
