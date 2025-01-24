@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { useAuthToken } from '@/stores/authStore'
+import { ADD_TO_WATCHLIST, useMutationWithProvider } from '@/graphql'
+import { storeToRefs } from 'pinia'
+import { ref } from 'vue'
 
-const { isUserLoggedIn } = useAuthToken()
+const { isUserLoggedIn, authToken } = storeToRefs(useAuthToken())
+
+const itemInWatchlist = ref<boolean>(false)
 
 interface IProps {
   anime: {
@@ -18,8 +23,28 @@ interface IProps {
 
 const props = defineProps<IProps>()
 
-const onClickAddToWatchlist = () => {
-  console.log('In progress...')
+const { mutate: addToWatchlist, onDone, onError } = useMutationWithProvider(ADD_TO_WATCHLIST)
+
+const onClickAddToWatchlist = (id: number) => {
+  addToWatchlist(
+    { animeId: id },
+    {
+      context: {
+        headers: {
+          Authorization: `${authToken.value}`,
+        },
+      },
+    },
+  )
+
+  onDone((result) => {
+    if (result.data?.addToWatchlist) itemInWatchlist.value = true
+  })
+
+  onError((error) => {
+    console.error(error)
+    alert('An error occurred. Please try again.')
+  })
 }
 </script>
 <template>
@@ -52,9 +77,10 @@ const onClickAddToWatchlist = () => {
     <div v-if="isUserLoggedIn" class="mt-auto p-4 border-t">
       <button
         class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors w-full"
-        @click="onClickAddToWatchlist"
+        :class="itemInWatchlist ? 'bg-gray-500 cursor-not-allowed' : ''"
+        @click="() => onClickAddToWatchlist(anime.id)"
       >
-        Add to Watchlist
+        {{ itemInWatchlist ? 'Added' : 'Add to Watchlist' }}
       </button>
     </div>
   </div>

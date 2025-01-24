@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useMutation, provideApolloClient } from '@vue/apollo-composable'
-import { apolloClient } from '@/plugins/apollo'
-import { LOGIN, CREATE_USER } from '@/graphql/queries'
+import { LOGIN, CREATE_USER, useMutationWithProvider } from '@/graphql'
 import { useAuthToken } from '@/stores/authStore'
 import { useRouter } from 'vue-router'
 
@@ -20,15 +18,13 @@ const username = ref<string>('')
 const password = ref<string>('')
 const confirmPassword = ref<string>('')
 
-// Login/Register toggle
 const isLogin = ref<boolean>(props.type === 'login')
 
-const useMutationWithProvider = (query: any) => {
-  return provideApolloClient(apolloClient)(() => useMutation(query))
-}
-
-// // Apollo mutations
-const { mutate: loginUser, onDone: onLoginUser } = useMutationWithProvider(LOGIN)
+const {
+  mutate: loginUser,
+  onDone: onLoginUser,
+  onError: onErrorLogin,
+} = useMutationWithProvider(LOGIN)
 const { mutate: createUser, onDone: onCreateUser } = useMutationWithProvider(CREATE_USER)
 
 const toggleForm = () => router.push({ path: isLogin.value ? '/register' : '/login' })
@@ -40,23 +36,22 @@ const handleSubmit = async () => {
     return
   }
 
-  try {
-    if (isLogin.value) {
-      loginUser({ username: username.value, password: password.value })
-      onLoginUser((result) => {
-        setAuthToken(result.data?.login)
-        router.push({ path: '/' })
-      })
-    } else {
-      createUser({ username: username.value, password: password.value })
-      onCreateUser((result) => {
-        console.log(result.data?.createUser)
-        if (result.data?.createUser) toggleForm() // Switch to login form
-      })
-    }
-  } catch (error) {
-    console.error(error)
-    alert('An error occurred. Please try again.')
+  if (isLogin.value) {
+    loginUser({ username: username.value, password: password.value })
+    onLoginUser((result) => {
+      setAuthToken(result.data?.login)
+      router.push({ path: '/' })
+    })
+
+    onErrorLogin((error) => {
+      alert(error.message)
+    })
+  } else {
+    createUser({ username: username.value, password: password.value })
+    onCreateUser((result) => {
+      console.log(result.data?.createUser)
+      if (result.data?.createUser) toggleForm() // Switch to login form
+    })
   }
 }
 </script>

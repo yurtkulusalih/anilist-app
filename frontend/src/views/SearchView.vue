@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { SEARCH_ANIME } from '@/graphql/queries'
+import { SEARCH_ANIME } from '@/graphql'
 import { apolloClient } from '@/plugins/apollo'
 import { useQuery, provideApolloClient } from '@vue/apollo-composable'
 import AnimeCard from '@/components/AnimeCard.vue'
@@ -10,15 +10,20 @@ const results = ref<any[]>([])
 
 const searchAnime = () => {
   const { result: animelist } = provideApolloClient(apolloClient)(() =>
-    useQuery(SEARCH_ANIME, {
-      search: searchTerm.value,
-    }),
+    useQuery(
+      SEARCH_ANIME,
+      {
+        search: searchTerm.value,
+      },
+      {
+        fetchPolicy: 'network-only',
+      },
+    ),
   )
 
-  const unwatch = watch(animelist, (data) => {
+  watch(animelist, (data) => {
     if (data.animelist) {
       results.value = data.animelist
-      unwatch()
     }
   })
 }
