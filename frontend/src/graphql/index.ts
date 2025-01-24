@@ -53,7 +53,7 @@ export const CREATE_USER = gql`
 `
 
 export const ADD_TO_WATCHLIST = gql`
-  mutation ($animeId: Int!) {
+  mutation addToWatchList($animeId: Int!) {
     addToWatchlist(animeId: $animeId)
   }
 `

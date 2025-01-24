@@ -4,7 +4,7 @@ import { ADD_TO_WATCHLIST, useMutationWithProvider } from '@/graphql'
 import { storeToRefs } from 'pinia'
 import { ref } from 'vue'
 
-const { isUserLoggedIn, authToken } = storeToRefs(useAuthToken())
+const authTokenStore = useAuthToken()
 
 interface IProps {
   anime: {
@@ -32,7 +32,7 @@ const onClickAddToWatchlist = (id: number) => {
     {
       context: {
         headers: {
-          Authorization: `${authToken.value}`,
+          Authorization: `${authTokenStore?.authToken}`,
         },
       },
     },
@@ -50,7 +50,6 @@ const onClickAddToWatchlist = (id: number) => {
 </script>
 <template>
   <div class="flex flex-col justify-between bg-white shadow-md rounded-lg overflow-hidden">
-    <!-- Card Image -->
     <img :src="props.anime.coverImage" alt="Anime Cover" class="h-48 w-full object-cover" />
 
     <!-- Card Content -->
@@ -75,8 +74,9 @@ const onClickAddToWatchlist = (id: number) => {
         Status: {{ props.anime.status }}
       </p>
     </div>
-    <div v-if="isUserLoggedIn" class="mt-auto p-4 border-t">
+    <div v-if="authTokenStore.isUserLoggedIn" class="mt-auto p-4 border-t">
       <button
+        data-test="anime-card-add-to-watchlist-btn"
         class="text-white px-4 py-2 rounded-md w-full"
         :class="
           itemInWatchlist

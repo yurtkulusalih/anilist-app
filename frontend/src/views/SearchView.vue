@@ -60,10 +60,12 @@ const searchAnime = () => {
 
 <template>
   <div class="flex flex-col items-center gap-y-6 pt-4">
+    <!-- Search bar -->
     <div class="flex gap-x-4 justify-center w-full">
       <input v-model="searchTerm" placeholder="Search Anime" class="border p-2 w-[60%]" />
       <button class="bg-blue-500 text-white px-4 py-2" @click="searchAnime">Search</button>
     </div>
+    <!-- Content -->
     <div v-if="results.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-[60%]">
       <AnimeCard v-for="anime in results" :key="anime.id" :anime="anime" />
     </div>

@@ -13,7 +13,6 @@ const props = defineProps<IProps>()
 const router = useRouter()
 const { setAuthToken } = useAuthToken()
 
-// Form fields
 const username = ref<string>('')
 const password = ref<string>('')
 const confirmPassword = ref<string>('')
@@ -29,7 +28,6 @@ const { mutate: createUser, onDone: onCreateUser } = useMutationWithProvider(CRE
 
 const toggleForm = () => router.push({ path: isLogin.value ? '/register' : '/login' })
 
-// Form submission
 const handleSubmit = () => {
   if (!isLogin.value && password.value !== confirmPassword.value) {
     alert('Passwords do not match.')

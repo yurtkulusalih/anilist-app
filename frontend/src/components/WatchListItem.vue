@@ -12,7 +12,6 @@ const props = defineProps<IProps>()
 </script>
 <template>
   <li :key="props.item.id" class="flex items-center space-x-4 border-b pb-2">
-    <!-- Picture -->
     <img
       :src="props.item.coverImage"
       alt="Anime Picture"
