@@ -53,6 +53,12 @@ fastapi dev main.py
 npm ci
 ```
 
+3. Run component-based tests. This will execute only the tests implemented for the AnimeCard component. Apologies for not completing all the tests on time!:
+
+```
+npm run test:unit
+```
+
 3. Run the application:
 
 ```

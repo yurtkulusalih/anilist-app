@@ -2,7 +2,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, vi, test, beforeAll, afterEach, afterAll } from 'vitest'
 import AnimeCard from '@/components/AnimeCard.vue'
 import { useAuthToken } from '@/stores/authStore'
-import { createTestingPinia } from '@pinia/testing'
+import { createTestingPinia, type TestingPinia } from '@pinia/testing'
 import { ADD_TO_WATCHLIST } from '@/graphql'
 import { setupServer } from 'msw/node'
 import { graphql, HttpResponse } from 'msw'
@@ -31,16 +31,18 @@ const anime = {
 
 describe('/components/AnimeCard.vue', () => {
   let wrapper: any
+  let pinia: TestingPinia
   beforeEach(() => {
-    wrapper = mount(AnimeCard, {
-      props: { anime },
-      global: { plugins: [createTestingPinia({ createSpy: vi.fn() })] },
-    })
-
-    const store = useAuthToken()
-    store.authToken = 'test-token'
+    pinia = createTestingPinia({ createSpy: vi.fn() })
   })
   test('adds anime to watchlist when btn is clicked', async () => {
+    const store = useAuthToken()
+    store.authToken = 'test-token'
+
+    wrapper = mount(AnimeCard, {
+      props: { anime },
+      global: { plugins: [pinia] },
+    })
     const button = wrapper?.get('[data-test="anime-card-add-to-watchlist-btn"]')
     expect(button.text()).toBe('Add to Watchlist')
 
@@ -49,5 +51,14 @@ describe('/components/AnimeCard.vue', () => {
 
     expect(wrapper.vm.itemInWatchlist).toBe(true)
     expect(button.text()).toBe('Added')
+  })
+
+  test('btn is not rendered if not logged in', () => {
+    wrapper = mount(AnimeCard, {
+      props: { anime },
+      global: { plugins: [pinia] },
+    })
+
+    expect(() => wrapper?.get('[data-test="anime-card-add-to-watchlist-btn"]')).toThrowError()
   })
 })
